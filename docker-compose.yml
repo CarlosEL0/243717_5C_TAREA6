@@ -1,4 +1,3 @@
-# Docker Compose para PostgreSQL + Next.js (Fase BD)
 
 services:
   postgres:
@@ -20,17 +19,13 @@ services:
       timeout: 5s
       retries: 5
 
-volumes:
-  postgres_data:
-
-frontend:
+  frontend:
     build: ./frontend
     container_name: nextjs_app
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      # Usamos el usuario 'app_reporter' (solo lectura) para cumplir el requisito de seguridad
       DATABASE_URL: postgres://app_reporter:412785fg@postgres_container:5432/actividad_db
     depends_on:
       postgres:
@@ -38,4 +33,6 @@ frontend:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-  
+
+volumes:
+  postgres_data:
