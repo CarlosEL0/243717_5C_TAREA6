@@ -1,4 +1,4 @@
-# Docker Compose para PostgreSQL
+# Docker Compose para PostgreSQL + Next.js (Fase BD)
 
 services:
   postgres:
@@ -13,7 +13,7 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db:/scripts:ro  # Scripts accesibles en /scripts (NO se autoejecuttan)
+      - ./db:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d actividad_db"]
       interval: 10s
