@@ -1,4 +1,3 @@
-# Docker Compose para PostgreSQL
 
 services:
   postgres:
@@ -13,12 +12,27 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db:/scripts:ro  # Scripts accesibles en /scripts (NO se autoejecuttan)
+      - ./db:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d actividad_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  frontend:
+    build: ./frontend
+    container_name: nextjs_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://app_reporter:412785fg@postgres_container:5432/actividad_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:
