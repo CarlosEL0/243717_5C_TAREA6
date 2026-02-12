@@ -18,7 +18,11 @@ GRANT CONNECT ON DATABASE actividad_db TO app_reporter;
 GRANT USAGE ON SCHEMA public TO app_reporter;
 
 -- 3. LA CLAVE: Dar permiso de lectura a TODAS las tablas y vistas actuales
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_reporter;
+GRANT SELECT ON lab6.v_inventory_status TO app_user;
+GRANT SELECT ON lab6.v_sales_by_category TO app_user;
+GRANT SELECT ON lab6.v_high_value_customers TO app_user;
+GRANT SELECT ON lab6.v_sales_trends TO app_user;
+GRANT SELECT ON lab6.v_top_products_per_category TO app_user;
 
 -- 4. (Opcional) Asegurar permiso para futuras tablas/vistas que se creen
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO app_reporter;
