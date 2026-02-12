@@ -1,8 +1,8 @@
 -- ============================================
 -- SCHEMA.SQL - Definición de Estructura
 -- ============================================
--- Equipo: [Nombre del equipo]
--- Fecha: [Fecha]
+-- Alumno: Carlos Eduardo Lopez Ochoa 
+-- Fecha: 31 de enero de 2026
 -- Dominio: [Describir el dominio modelado]
 -- ============================================
 
