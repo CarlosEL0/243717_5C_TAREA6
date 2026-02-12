@@ -91,17 +91,22 @@ JOIN categorias c ON p.categoria_id = c.id;
    VERIFY QUERIES:
    SELECT * FROM v_sales_trends ORDER BY sales_month DESC;
 */
-DROP VIEW IF EXISTS v_sales_trends CASCADE;
-CREATE VIEW v_sales_trends AS
-WITH MonthlySales AS (
+CREATE OR REPLACE VIEW lab6.v_sales_trends AS
+WITH daily_sales AS (
     SELECT 
-        TO_CHAR(created_at, 'YYYY-MM-01')::DATE as sales_month,
-        COUNT(id) as total_orders,
-        SUM(total) as monthly_revenue
-    FROM ordenes
-    GROUP BY TO_CHAR(created_at, 'YYYY-MM-01')::DATE
+        o.order_date::DATE as sale_date,
+        SUM(oi.quantity * oi.unit_price) as daily_revenue,
+        COUNT(o.order_id) as total_orders
+    FROM lab6.orders o
+    JOIN lab6.order_items oi ON o.order_id = oi.order_id
+    GROUP BY o.order_date::DATE
 )
-SELECT * FROM MonthlySales;
+SELECT 
+    sale_date,
+    daily_revenue,
+    total_orders,
+    AVG(daily_revenue) OVER (ORDER BY sale_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as moving_avg_7d
+FROM daily_sales;
 
 -- ============================================
 -- VISTA 5: v_top_products_per_category
