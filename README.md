@@ -13,12 +13,14 @@ El proyecto está contenerizado para una ejecución en un solo comando.
 
 1. Clonar el repositorio / Descomprimir la carpeta.
 
-2. Ejecutar Docker Compose:
+2. crea tu archivo .env en la raiz del proyecto y copia las variables de entorno
+
+3. Ejecutar Docker Compose:
 ```bash
    docker compose up --build -d
 ```
 
-3. Acceder a la aplicación:  
+4. Acceder a la aplicación:  
    Abrir el navegador en [http://localhost:3000](http://localhost:3000)
 
 > **Nota:** Al levantar el contenedor, PostgreSQL ejecutará automáticamente los scripts de `db/` para crear el esquema, poblar datos (seeds), generar las vistas, índices y configurar los roles de seguridad.
