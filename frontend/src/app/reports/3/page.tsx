@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { query } from '@/app/lib/db';
-import { ArrowLeft, Package, AlertTriangle, CheckCircle, Search } from 'lucide-react';
+import { getInventoryStatus } from '@/app/lib/reports';
+import { ArrowLeft, Package, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface InventoryItem {
   product_id: number;
@@ -8,16 +8,14 @@ interface InventoryItem {
   category_name: string;
   stock_quantity: number;
   price: string;
-  stock_status: string; // Asumiendo que la vista devuelve 'Low', 'Medium', 'High' o lo calculamos aquí
+  stock_status: string; 
 }
 
 export default async function Report3Page() {
-  // Consultamos la vista de inventario
-  // NOTA: Asegúrate de que tu vista se llame 'v_inventory_status' o ajusta el nombre aquí
-  const result = await query('SELECT * FROM v_inventory_status ORDER BY stock_quantity ASC');
-  const rows = result.rows as InventoryItem[];
+  // 2. Fetching de datos a través de la capa de servicio
+  const rows = await getInventoryStatus() as InventoryItem[];
 
-  // KPI: Valor total del inventario (Stock * Precio)
+  // 3. Cálculo de KPI (Lógica de presentación)
   const totalInventoryValue = rows.reduce((acc, row) => acc + (row.stock_quantity * parseFloat(row.price)), 0);
 
   return (
@@ -46,6 +44,7 @@ export default async function Report3Page() {
           </div>
         </header>
 
+        {/* Tabla de Resultados */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-100 text-gray-600 uppercase font-medium">
@@ -65,6 +64,7 @@ export default async function Report3Page() {
                   <td className="px-6 py-4 text-right">${parseFloat(row.price).toFixed(2)}</td>
                   <td className="px-6 py-4 text-center font-mono font-bold">{row.stock_quantity}</td>
                   <td className="px-6 py-4 text-center">
+                    {/* Mantenemos la lógica visual de estados */}
                     {row.stock_quantity < 10 ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
                         <AlertTriangle className="w-3 h-3 mr-1" /> Crítico

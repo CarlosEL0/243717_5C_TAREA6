@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { query } from '@/app/lib/db';
+import { getTopProducts } from '@/app/lib/reports';
 import { ArrowLeft, Award, Trophy, Medal } from 'lucide-react';
 
 interface RankedProduct {
@@ -10,9 +10,8 @@ interface RankedProduct {
 }
 
 export default async function Report5Page() {
-  // Consultamos la vista de Ranking (Window Functions)
-  const result = await query('SELECT * FROM v_top_products_per_category ORDER BY category_name, rank_in_category');
-  const rows = result.rows as RankedProduct[];
+  // 2. Fetching seguro (Server-Side) mediante la capa de servicios
+  const rows = await getTopProducts() as RankedProduct[];
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
@@ -28,10 +27,11 @@ export default async function Report5Page() {
             Ranking de Productos
           </h1>
           <p className="text-gray-600 mt-2">
-            Top 3 productos más costosos por categoría (Window Functions).
+            Top 3 productos más costosos por categoría.
           </p>
         </header>
 
+        {/* Tabla de Resultados con Medallas Visuales */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-100 text-gray-600 uppercase font-medium">
@@ -45,12 +45,12 @@ export default async function Report5Page() {
             <tbody className="divide-y divide-gray-200">
               {rows.map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
-                  {/* Mostramos la categoría en negrita */}
+                  {/* Celda de Categoría destacada */}
                   <td className="px-6 py-4 font-bold text-gray-800 bg-gray-50/50">
                     {row.category_name}
                   </td>
                   
-                  {/* Lógica visual para las medallas */}
+                  {/* Lógica visual de medallas (se mantiene intacta) */}
                   <td className="px-6 py-4 text-center">
                     {row.rank_in_category === 1 && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 text-xs font-bold">

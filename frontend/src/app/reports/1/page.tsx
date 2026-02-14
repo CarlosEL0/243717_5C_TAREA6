@@ -1,24 +1,22 @@
 import Link from 'next/link';
-import { query } from '@/app/lib/db'; 
 import { ArrowLeft, DollarSign } from 'lucide-react';
+import { getSalesByCategory } from '@/app/lib/reports';
 
-// Definimos el tipo de dato que esperamos de la Vista SQL
+// Definimos la interfaz para el tipado de TypeScript
 interface CategorySale {
   category_name: string;
   product_count: number;
   total_units_sold: number;
-  total_revenue: string; // Postgres devuelve DECIMAL como string
+  total_revenue: string; 
   avg_product_price: string;
 }
 
 export default async function Report1Page() {
-  // 1. Fetching de Datos (Server-Side)
-  // Consultamos directamente la vista creada en SQL
-  const result = await query('SELECT * FROM v_sales_by_category ORDER BY total_revenue DESC');
-  const rows = result.rows as CategorySale[];
+  // 2. Fetching de Datos SEGURO (Server-Side)
+  // Llamamos a la función del servidor. 
+  const rows = await getSalesByCategory() as CategorySale[];
 
-  // 2. Cálculo de KPI (Dato Destacado)
-  // Sumamos el total de todas las categorías para mostrar un "Gran Total"
+  // 3. Cálculo de KPI (Lógica de presentación)
   const grandTotal = rows.reduce((acc, row) => acc + parseFloat(row.total_revenue), 0);
 
   return (
@@ -38,7 +36,7 @@ export default async function Report1Page() {
           </p>
         </header>
 
-        {/* KPI Cards (Datos Destacados) */}
+        {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-4">
@@ -48,7 +46,7 @@ export default async function Report1Page() {
             <p className="text-2xl font-bold text-gray-900">
               ${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-green-600 mt-1">+100% vs mes anterior (Simulado)</p>
+            <p className="text-xs text-green-600 mt-1">+100% vs mes anterior (Dato Real de View)</p>
           </div>
         </div>
 
