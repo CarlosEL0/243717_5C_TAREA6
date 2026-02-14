@@ -1,21 +1,22 @@
 import Link from 'next/link';
-import { query } from '@/app/lib/db';
-import { ArrowLeft, TrendingUp, Calendar, DollarSign } from 'lucide-react';
+import { getSalesTrends } from '@/app/lib/reports';
+import { ArrowLeft, TrendingUp, Calendar } from 'lucide-react';
 
 interface MonthlyTrend {
-  sales_month: string; // Postgres devuelve fecha como string o Date
+  sales_month: string; 
   total_orders: number;
   monthly_revenue: string;
 }
 
 export default async function Report4Page() {
-  // Consultamos la vista de tendencias (CTE)
-  const result = await query('SELECT * FROM v_sales_trends ORDER BY sales_month DESC');
-  const rows = result.rows as MonthlyTrend[];
+  // 2. Fetching de datos mediante la capa de servicio
+  const rows = await getSalesTrends() as MonthlyTrend[];
 
-  // Lógica para el "Gráfico de Barras CSS":
+  // 3. Lógica para el "Gráfico de Barras CSS"
   // Encontramos el mes con mayores ventas para usarlo como el 100% de la barra
-  const maxRevenue = Math.max(...rows.map(r => parseFloat(r.monthly_revenue)));
+  const maxRevenue = rows.length > 0 
+    ? Math.max(...rows.map(r => parseFloat(r.monthly_revenue)))
+    : 0;
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
@@ -31,10 +32,11 @@ export default async function Report4Page() {
             Tendencias Mensuales
           </h1>
           <p className="text-gray-600 mt-2">
-            Histórico de desempeño agrupado por mes.
+            Histórico de desempeño agrupado por mes (Cálculo mediante CTE).
           </p>
         </header>
 
+        {/* Tabla de Resultados con Gráfico CSS */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-100 text-gray-600 uppercase font-medium">
@@ -51,7 +53,7 @@ export default async function Report4Page() {
                 // Calculamos el porcentaje de la barra (Regla de 3)
                 const percentage = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
                 
-                // Formateamos la fecha para que se vea bonita (Ej: "Jan 2026")
+                // Formateamos la fecha para legibilidad
                 const dateObj = new Date(row.sales_month);
                 const dateStr = dateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 
@@ -70,7 +72,7 @@ export default async function Report4Page() {
                       ${revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-6 py-4 align-middle">
-                      {/* Barra Visual */}
+                      {/* Barra Visual Proporcional */}
                       <div className="w-full bg-gray-200 rounded-full h-2.5">
                         <div 
                           className="bg-orange-500 h-2.5 rounded-full transition-all duration-500" 

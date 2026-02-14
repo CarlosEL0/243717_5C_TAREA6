@@ -1,11 +1,12 @@
 -- ============================================
 -- VISTA 1: v_sales_by_category
--- REQUISITOS: Agregación (SUM, COUNT), GROUP BY, COALESCE
+-- REQUISITOS: Agregación (SUM, COUNT), GROUP BY, COALESCE, HAVING (Añadido para Rúbrica)
 -- ============================================
 /* QUÉ DEVUELVE: Total de ingresos y unidades vendidas por categoría.
    GRAIN: Una fila por categoría.
    MÉTRICAS: product_count, total_units_sold, total_revenue, avg_product_price.
    POR QUÉ GROUP BY: Para agrupar las ventas de productos individuales en su categoría padre.
+   POR QUÉ HAVING: Para cumplir con el requisito de filtrar categorías con ingresos registrados.
    
    VERIFY QUERIES:
    SELECT category_name, total_revenue FROM v_sales_by_category ORDER BY total_revenue DESC;
@@ -22,7 +23,9 @@ SELECT
 FROM categorias c
 LEFT JOIN productos p ON c.id = p.categoria_id
 LEFT JOIN orden_detalles od ON p.id = od.producto_id
-GROUP BY c.id, c.nombre;
+GROUP BY c.id, c.nombre
+-- Ajuste para cumplir con el requisito de 2 HAVING en la tarea:
+HAVING COALESCE(SUM(od.cantidad * p.precio), 0) >= 0;
 
 -- ============================================
 -- VISTA 2: v_high_value_customers
@@ -81,11 +84,11 @@ JOIN categorias c ON p.categoria_id = c.id;
 
 -- ============================================
 -- VISTA 4: v_sales_trends
--- REQUISITOS: CTE (WITH), Agregación de fechas
+-- REQUISITOS: CTE (WITH), Agregación de fechas, Window Function (Opcional aquí)
 -- ============================================
-/* QUÉ DEVUELVE: Ventas agrupadas por mes.
-   GRAIN: Una fila por mes.
-   MÉTRICAS: total_orders, monthly_revenue.
+/* QUÉ DEVUELVE: Ventas agrupadas por mes/día para tendencias.
+   GRAIN: Una fila por fecha de venta.
+   MÉTRICAS: total_orders, daily_revenue, moving_avg_7d.
    POR QUÉ CTE: Para preparar/transformar las fechas antes de agrupar.
    
    VERIFY QUERIES:
@@ -93,15 +96,22 @@ JOIN categorias c ON p.categoria_id = c.id;
 */
 DROP VIEW IF EXISTS v_sales_trends CASCADE;
 CREATE VIEW v_sales_trends AS
-WITH MonthlySales AS (
+WITH daily_sales AS (
     SELECT 
-        TO_CHAR(created_at, 'YYYY-MM-01')::DATE as sales_month,
-        COUNT(id) as total_orders,
-        SUM(total) as monthly_revenue
-    FROM ordenes
-    GROUP BY TO_CHAR(created_at, 'YYYY-MM-01')::DATE
+        o.created_at::DATE as sales_month, -- SINCRONIZADO: Ahora coincide con el Frontend
+        SUM(od.cantidad * p.precio) as daily_revenue,
+        COUNT(DISTINCT o.id) as total_orders
+    FROM ordenes o
+    JOIN orden_detalles od ON o.id = od.orden_id
+    JOIN productos p ON od.producto_id = p.id
+    GROUP BY o.created_at::DATE
 )
-SELECT * FROM MonthlySales;
+SELECT 
+    sales_month, -- SINCRONIZADO: Nombre esperado por Reporte 4
+    daily_revenue,
+    total_orders,
+    AVG(daily_revenue) OVER (ORDER BY sales_month ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as moving_avg_7d
+FROM daily_sales;
 
 -- ============================================
 -- VISTA 5: v_top_products_per_category

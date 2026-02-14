@@ -1,21 +1,20 @@
-
 services:
   postgres:
-    image: postgres:16-alpine
     container_name: postgres_container
-    restart: unless-stopped
+    image: postgres:16-alpine
+    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
-      POSTGRES_DB: actividad_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "127.0.0.1:5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d actividad_db"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
       timeout: 5s
       retries: 5
 
@@ -26,7 +25,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgres://app_reporter:412785fg@postgres_container:5432/actividad_db
+      DATABASE_URL: ${DATABASE_URL}
+      WATCHPACK_POLLING: ${WATCHPACK_POLLING}
     depends_on:
       postgres:
         condition: service_healthy
