@@ -1,24 +1,19 @@
--- db/05_roles.sql
+-- 1. Limpieza de seguridad
+DROP ROLE IF EXISTS app_reporter;
 
--- 1. Crear el rol de "Reportero" si no existe
-DO
-$do$
-BEGIN
-   IF NOT EXISTS (
-      SELECT FROM pg_catalog.pg_roles
-      WHERE  rolname = 'app_reporter') THEN
+-- 2. Creación del rol con permisos de inicio de sesión
+-- Se utiliza la contraseña definida en el archivo .env para consistencia
+CREATE ROLE app_reporter WITH LOGIN PASSWORD '412785fg';
 
-      CREATE ROLE app_reporter WITH LOGIN PASSWORD '412785fg';
-   END IF;
-END
-$do$;
-
--- 2. Asegurar permisos de conexión
+-- 3. Permisos de conexión a la base de datos y uso del esquema
 GRANT CONNECT ON DATABASE actividad_db TO app_reporter;
 GRANT USAGE ON SCHEMA public TO app_reporter;
 
--- 3. LA CLAVE: Dar permiso de lectura a TODAS las tablas y vistas actuales
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_reporter;
+-- 4. RESTRICCIÓN ESTRICTA (Rúbrica): SELECT SOLO sobre las VIEWS
+-- No se otorga GRANT SELECT sobre las tablas (usuarios, productos, etc.)
+GRANT SELECT ON public.v_sales_by_category TO app_reporter;
+GRANT SELECT ON public.v_high_value_customers TO app_reporter;
+GRANT SELECT ON public.v_inventory_status TO app_reporter;
+GRANT SELECT ON public.v_sales_trends TO app_reporter;
+GRANT SELECT ON public.v_top_products_per_category TO app_reporter;
 
--- 4. (Opcional) Asegurar permiso para futuras tablas/vistas que se creen
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO app_reporter;
