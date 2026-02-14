@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { query } from '@/app/lib/db';
 import { ArrowLeft, Users, Star } from 'lucide-react';
+import { getHighValueCustomers } from '@/app/lib/reports';
 
 // Tipo de dato para este reporte
 interface VipCustomer {
@@ -12,9 +12,8 @@ interface VipCustomer {
 }
 
 export default async function Report2Page() {
-  // Consultamos la vista que usa HAVING SUM(total) > 500
-  const result = await query('SELECT * FROM v_high_value_customers ORDER BY total_spent DESC');
-  const rows = result.rows as VipCustomer[];
+  // 2. Fetching seguro desde el servidor
+  const rows = await getHighValueCustomers() as VipCustomer[];
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
